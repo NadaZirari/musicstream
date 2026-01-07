@@ -1,0 +1,48 @@
+.library {
+  max-width: 800px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.search-input,
+.filter-select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.category {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.actions {
+  margin-top: 0.5rem;
+}
+
+.actions a {
+  margin-right: 1rem;
+  text-decoration: none;
+  color: blue;
+}
+
+button {
+  background: transparent;
+  border: none;
+  color: red;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+}

@@ -1,1 +1,52 @@
-<p>library works!</p>
+<div class="library">
+
+  <h2>🎵 Bibliothèque musicale</h2>
+
+  <!-- 🔍 Recherche -->
+  <input
+    type="text"
+    placeholder="Rechercher par titre ou artiste"
+    [(ngModel)]="searchTerm"
+    class="search-input"
+  />
+
+  <!-- 🎼 Filtre catégorie -->
+  <select [(ngModel)]="selectedCategory" class="filter-select">
+    <option value="all">Toutes les catégories</option>
+    <option value="pop">Pop</option>
+    <option value="rock">Rock</option>
+    <option value="rap">Rap</option>
+    <option value="jazz">Jazz</option>
+    <option value="classical">Classique</option>
+    <option value="other">Autre</option>
+  </select>
+
+  <!-- ⏳ Chargement -->
+  <p *ngIf="(trackService.state$ | async) === 'loading'">
+    Chargement des tracks...
+  </p>
+
+  <!-- ❌ Erreur -->
+  <p class="error" *ngIf="(trackService.state$ | async) === 'error'">
+    {{ trackService.error$ | async }}
+  </p>
+
+  <!-- 📃 Liste -->
+  <ul *ngIf="(trackService.state$ | async) === 'success'">
+    <li *ngFor="let track of filterTracks(trackService.tracks$ | async || [])">
+      <strong>{{ track.title }}</strong> – {{ track.artist }}
+      <span class="category">({{ track.category }})</span>
+
+      <div class="actions">
+        <a [routerLink]="['/track', track.id]">▶ Lire</a>
+        <button (click)="deleteTrack(track.id)">🗑 Supprimer</button>
+      </div>
+    </li>
+  </ul>
+
+  <!-- 🚫 Aucun résultat -->
+  <p *ngIf="(trackService.tracks$ | async)?.length === 0">
+    Aucun track dans la bibliothèque.
+  </p>
+
+</div>
