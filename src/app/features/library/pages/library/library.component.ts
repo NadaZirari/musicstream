@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="library">
       <h2>Music Library</h2>
-      <p>Welcome to your music library. Your tracks will appear here.</p>
+      <p>Welcome to your music library NADA !. Your tracks will appear here.</p>
     </div>
   `,
   styles: [`
