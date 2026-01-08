@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-
 import { Track } from '../models/track.model';
 import { LoadingState } from '../models/state.model';
 import { StorageService } from './storage.service';
@@ -22,7 +21,9 @@ export class TrackService {
 
   constructor(private storageService: StorageService) {}
 
-  // 📥 Charger tous les tracks
+  // ==========================
+  // 📥 LOAD TRACKS
+  // ==========================
   async loadTracks(): Promise<void> {
     this.stateSubject.next('loading');
     this.errorSubject.next(null);
@@ -30,7 +31,7 @@ export class TrackService {
     try {
       const data = await this.storageService.getAllTracks();
 
-      const tracks: Track[] = data.map((item: any) => ({
+      const tracks: Track[] = data.map(item => ({
         id: item.id,
         title: item.title,
         artist: item.artist,
@@ -46,40 +47,59 @@ export class TrackService {
 
     } catch (error: any) {
       this.stateSubject.next('error');
-      this.errorSubject.next(error?.message || 'Erreur lors du chargement des tracks');
+      this.errorSubject.next(error?.toString() || 'Erreur chargement des tracks');
     }
   }
 
-  // ➕ Ajouter un track
-  async addTrack(track: Track, file: File): Promise<void> {
+  // ==========================
+  // ➕ ADD TRACK
+  // ==========================
+  async addTrack(track: Track, audioFile: Blob): Promise<void> {
+    this.stateSubject.next('loading');
+
     try {
-      this.stateSubject.next('loading');
-
-      await this.storageService.addTrack({
-        ...track,
-        audioFile: file
-      });
-
+      await this.storageService.saveTrack(track, audioFile);
       await this.loadTracks();
-
     } catch (error: any) {
       this.stateSubject.next('error');
-      this.errorSubject.next(error?.message || 'Erreur lors de l’ajout du track');
+      this.errorSubject.next(error?.toString() || 'Erreur ajout du track');
     }
   }
 
-  // 🗑 Supprimer un track
+  // ==========================
+  // ❌ DELETE TRACK
+  // ==========================
   async deleteTrack(id: string): Promise<void> {
+    this.stateSubject.next('loading');
+
     try {
-      this.stateSubject.next('loading');
-
       await this.storageService.deleteTrack(id);
-
       await this.loadTracks();
-
     } catch (error: any) {
       this.stateSubject.next('error');
-      this.errorSubject.next(error?.message || 'Erreur lors de la suppression');
+      this.errorSubject.next(error?.toString() || 'Erreur suppression du track');
     }
+  }
+
+  // ==========================
+  // ✏️ UPDATE TRACK
+  // ==========================
+  async updateTrack(track: Track): Promise<void> {
+    this.stateSubject.next('loading');
+
+    try {
+      await this.storageService.updateTrack(track);
+      await this.loadTracks();
+    } catch (error: any) {
+      this.stateSubject.next('error');
+      this.errorSubject.next(error?.toString() || 'Erreur mise à jour du track');
+    }
+  }
+
+  // ==========================
+  // 🔍 GET TRACK BY ID
+  // ==========================
+  getTrackById(id: string): Track | undefined {
+    return this.tracksSubject.getValue().find(track => track.id === id);
   }
 }
