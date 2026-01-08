@@ -32,39 +32,47 @@
   </p>
 
   <!-- 📃 Liste -->
-  <ul *ngIf="(trackService.state$ | async) === 'success'">
-    <li *ngFor="let track of filterTracks(trackService.tracks$ | async || [])">
-      <strong>{{ track.title }}</strong> – {{ track.artist }}
-      <span class="category">({{ track.category }})</span>
+  <ng-container *ngIf="trackService.tracks$ | async as tracks">
+    <ul *ngIf="tracks.length > 0">
+      <li *ngFor="let track of filterTracks(tracks)">
+        <strong>{{ track.title }}</strong> – {{ track.artist }}
+        <span class="category">({{ track.category }})</span>
 
-      <div class="actions">
-        <a [routerLink]="['/track', track.id]">▶ Lire</a>
-        <button (click)="deleteTrack(track.id)">🗑 Supprimer</button>
-      </div>
-    </li>
-  </ul>
+        <div class="actions">
+          <a [routerLink]="['/track', track.id]">▶ Lire</a>
+          <button (click)="deleteTrack(track.id)">🗑 Supprimer</button>
+        </div>
+      </li>
+    </ul>
 
-  <!-- 🚫 Aucun résultat -->
-  <p *ngIf="(trackService.tracks$ | async)?.length === 0">
-    Aucun track dans la bibliothèque.
-  </p>
+    <!-- 🚫 Aucun résultat -->
+    <p *ngIf="tracks.length === 0">
+      Aucun track dans la bibliothèque.
+    </p>
+  </ng-container>
 
 </div>
+
+<hr />
+
 <h3>➕ Ajouter un track</h3>
 
 <form [formGroup]="trackForm" (ngSubmit)="submit()">
 
   <input formControlName="title" placeholder="Titre" />
-  <small *ngIf="trackForm.controls.title.errors">
+  <small *ngIf="trackForm.controls.title.touched && trackForm.controls.title.invalid">
     Titre requis (max 50 caractères)
   </small>
 
   <input formControlName="artist" placeholder="Artiste" />
-  <small *ngIf="trackForm.controls.artist.errors">
+  <small *ngIf="trackForm.controls.artist.touched && trackForm.controls.artist.invalid">
     Artiste requis
   </small>
 
-  <textarea formControlName="description" placeholder="Description (optionnelle)"></textarea>
+  <textarea
+    formControlName="description"
+    placeholder="Description (optionnelle)">
+  </textarea>
 
   <select formControlName="category">
     <option value="pop">Pop</option>
