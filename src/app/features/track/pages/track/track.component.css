@@ -1,28 +1,111 @@
+/* Container principal */
 .track-page {
   max-width: 700px;
-  margin: auto;
-  padding: 1rem;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fef9f4; /* fond beige clair doux */
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
 }
 
+/* Titre track */
+.track-page h2 {
+  text-align: center;
+  color: #1D546C; /* bleu foncé moderne */
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+/* Description / info */
+.track-page p {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+/* Player container */
 .player {
-  margin-top: 2rem;
-  padding: 1rem;
-  border: 1px solid #ddd;
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Buttons controls */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .controls button {
-  margin: 0 0.5rem;
-  font-size: 1.2rem;
+  background: #6366f1; /* violet moderne */
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
+.controls button:hover {
+  background: #4f46e5;
+  transform: scale(1.1);
+}
+
+/* Barre de progression et volume */
 .progress,
 .volume {
-  margin-top: 1rem;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
+/* Slider range style */
 input[type="range"] {
   flex: 1;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 5px;
+  background: #d1d5db; /* gris doux */
+  outline: none;
+  transition: all 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Timer / labels */
+.progress span,
+.volume span {
+  font-size: 0.85rem;
+  color: #64748b;
+  min-width: 35px;
+  text-align: center;
 }
