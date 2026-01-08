@@ -60,12 +60,12 @@
 <form [formGroup]="trackForm" (ngSubmit)="submit()">
 
   <input formControlName="title" placeholder="Titre" />
-  <small *ngIf="trackForm.controls.title.touched && trackForm.controls.title.invalid">
+  <small *ngIf="trackForm.get('title')?.touched && trackForm.get('title')?.invalid">
     Titre requis (max 50 caractères)
   </small>
 
   <input formControlName="artist" placeholder="Artiste" />
-  <small *ngIf="trackForm.controls.artist.touched && trackForm.controls.artist.invalid">
+  <small *ngIf="trackForm.get('artist')?.touched && trackForm.get('artist')?.invalid">
     Artiste requis
   </small>
 

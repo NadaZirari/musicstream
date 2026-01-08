@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { TrackService } from '@app/core/services';
 import { Track, MusicCategory } from '@app/core/models/track.model';
@@ -11,7 +12,8 @@ import { Track, MusicCategory } from '@app/core/models/track.model';
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    RouterModule
   ],
   templateUrl: './library.component.html',
   styleUrls: ['./library.component.css']
@@ -23,20 +25,21 @@ export class LibraryComponent implements OnInit {
   selectedCategory: MusicCategory | 'all' = 'all';
 
   // ➕ Formulaire ajout track
-  trackForm = this.fb.group({
-    title: ['', [Validators.required, Validators.maxLength(50)]],
-    artist: ['', Validators.required],
-    description: ['', Validators.maxLength(200)],
-    category: ['pop', Validators.required],
-    audioFile: [null, Validators.required]
-  });
-
+  trackForm: FormGroup;
   fileError: string | null = null;
 
   constructor(
     public trackService: TrackService,
     private fb: FormBuilder
-  ) {}
+  ) {
+    this.trackForm = this.fb.group({
+      title: ['', [Validators.required, Validators.maxLength(50)]],
+      artist: ['', Validators.required],
+      description: ['', Validators.maxLength(200)],
+      category: ['pop', Validators.required],
+      audioFile: [null, Validators.required]
+    });
+  }
 
   ngOnInit(): void {
     this.trackService.loadTracks();
@@ -73,18 +76,17 @@ export class LibraryComponent implements OnInit {
     const audio = new Audio(URL.createObjectURL(file));
     audio.onloadedmetadata = async () => {
 
-      const track: Track = {
-        id: crypto.randomUUID(),
+      const trackData = {
         title: this.trackForm.value.title!,
         artist: this.trackForm.value.artist!,
         description: this.trackForm.value.description || '',
-        category: this.trackForm.value.category!,
+        category: this.trackForm.value.category as MusicCategory,
         duration: Math.floor(audio.duration),
         createdAt: new Date(),
         audioUrl: ''
       };
 
-      await this.trackService.addTrack(track, file);
+      await this.trackService.addTrack(trackData, file);
       this.trackForm.reset({ category: 'pop' });
     };
   }
