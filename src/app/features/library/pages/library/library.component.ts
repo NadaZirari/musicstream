@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrackService } from '../../core/services/track.service';
 import { Track, MusicCategory } from '../../core/models/track.model';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+
 
 @Component({
   selector: 'app-library',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule , ReactiveFormsModule],
   templateUrl: './library.component.html',
   styleUrls: ['./library.component.css']
 })
