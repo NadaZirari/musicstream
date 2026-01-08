@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
-import { TrackService } from '../../../core/services/track.service';
-import { Track, MusicCategory } from '../../../core/models/track.model';
+import { TrackService } from '@app/core/services';
+import { Track, MusicCategory } from '@app/core/models/track.model';
 
 @Component({
   selector: 'app-library',

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Track } from '../models/track.model';
-import { LoadingState } from '../models/state.model';
+import { Track } from '@core/models/track.model';
+import { LoadingState } from '@core/models/state.model';
 import { StorageService } from './storage.service';
 
 @Injectable({
@@ -54,15 +54,17 @@ export class TrackService {
   // ==========================
   // ➕ ADD TRACK
   // ==========================
-  async addTrack(track: Track, audioFile: Blob): Promise<void> {
+  async addTrack(track: Omit<Track, 'id' | 'createdAt' | 'audioUrl'>, audioFile: File): Promise<void> {
     this.stateSubject.next('loading');
 
     try {
       await this.storageService.saveTrack(track, audioFile);
       await this.loadTracks();
+      this.stateSubject.next('success');
     } catch (error: any) {
       this.stateSubject.next('error');
       this.errorSubject.next(error?.toString() || 'Erreur ajout du track');
+      throw error; // Re-throw to allow component to handle the error
     }
   }
 

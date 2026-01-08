@@ -104,4 +104,27 @@ export class StorageService {
         reject('Erreur lors de la mise à jour du track');
     });
   }
+
+  // 🔹 Sauvegarder un track
+  async saveTrack(track: Omit<Track, 'id' | 'createdAt' | 'audioUrl'>, audioFile: File): Promise<string> {
+    const db = await this.openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(this.STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(this.STORE_NAME);
+      
+      const newTrack: StoredTrack = {
+        ...track,
+        id: crypto.randomUUID(),
+        createdAt: new Date(),
+        audioFile: audioFile,
+        audioUrl: '', // Will be generated when retrieved
+        duration: 0   // Will be set after audio is loaded
+      };
+
+      const request = store.add(newTrack);
+
+      request.onsuccess = () => resolve(newTrack.id);
+      request.onerror = () => reject(request.error);
+    });
+  }
 }
