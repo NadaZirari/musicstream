@@ -1,6 +1,7 @@
-
 import { Injectable } from '@angular/core';
 import { Track } from '../models/track.model';
+
+type StoredTrack = Track & { audioFile: Blob };
 
 @Injectable({
   providedIn: 'root'
@@ -11,21 +12,20 @@ export class StorageService {
   private readonly STORE_NAME = 'tracks';
   private readonly DB_VERSION = 1;
 
-  // 🔹 Ouvrir / créer la base IndexedDB
+  // 🔹 Ouvrir / créer IndexedDB
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
 
-      request.onerror = () => {
+      request.onerror = () =>
         reject('Erreur lors de l’ouverture de IndexedDB');
-      };
 
-      request.onsuccess = () => {
+      request.onsuccess = () =>
         resolve(request.result);
-      };
 
       request.onupgradeneeded = (event: any) => {
-        const db = event.target.result;
+        const db: IDBDatabase = event.target.result;
+
         if (!db.objectStoreNames.contains(this.STORE_NAME)) {
           db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
         }
@@ -33,88 +33,75 @@ export class StorageService {
     });
   }
 
-  // 🔹 Sauvegarder un track
-  async saveTrack(track: Track, audioFile: Blob): Promise<void> {
-    try {
-      const db = await this.openDB();
-      const tx = db.transaction(this.STORE_NAME, 'readwrite');
-      const store = tx.objectStore(this.STORE_NAME);
+  // ➕ Ajouter un track
+  async addTrack(track: StoredTrack): Promise<void> {
+    const db = await this.openDB();
+    const tx = db.transaction(this.STORE_NAME, 'readwrite');
+    const store = tx.objectStore(this.STORE_NAME);
 
-      store.put({
-        ...track,
-        audioFile
-      });
+    store.put(track);
 
-      return new Promise((resolve, reject) => {
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject('Erreur lors de la sauvegarde du track');
-      });
-
-    } catch (error) {
-      throw error;
-    }
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () =>
+        reject('Erreur lors de la sauvegarde du track');
+    });
   }
 
-  // 🔹 Récupérer tous les tracks
-  async getAllTracks(): Promise<(Track & { audioFile: Blob })[]> {
-    try {
-      const db = await this.openDB();
-      const tx = db.transaction(this.STORE_NAME, 'readonly');
-      const store = tx.objectStore(this.STORE_NAME);
+  // 📥 Récupérer tous les tracks
+  async getAllTracks(): Promise<StoredTrack[]> {
+    const db = await this.openDB();
+    const tx = db.transaction(this.STORE_NAME, 'readonly');
+    const store = tx.objectStore(this.STORE_NAME);
 
-      return new Promise((resolve, reject) => {
-        const request = store.getAll();
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
 
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject('Erreur lors de la lecture des tracks');
-      });
+      request.onsuccess = () =>
+        resolve(request.result as StoredTrack[]);
 
-    } catch (error) {
-      throw error;
-    }
+      request.onerror = () =>
+        reject('Erreur lors de la lecture des tracks');
+    });
   }
 
-  // 🔹 Supprimer un track
+  // 🗑 Supprimer un track
   async deleteTrack(id: string): Promise<void> {
-    try {
-      const db = await this.openDB();
-      const tx = db.transaction(this.STORE_NAME, 'readwrite');
-      const store = tx.objectStore(this.STORE_NAME);
+    const db = await this.openDB();
+    const tx = db.transaction(this.STORE_NAME, 'readwrite');
+    const store = tx.objectStore(this.STORE_NAME);
 
-      store.delete(id);
+    store.delete(id);
 
-      return new Promise((resolve, reject) => {
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject('Erreur lors de la suppression du track');
-      });
-
-    } catch (error) {
-      throw error;
-    }
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () =>
+        reject('Erreur lors de la suppression du track');
+    });
   }
 
-  // 🔹 Mettre à jour un track (sans changer l’audio)
+  // ✏️ Mettre à jour un track (sans changer l’audio)
   async updateTrack(track: Track): Promise<void> {
-    try {
-      const db = await this.openDB();
-      const tx = db.transaction(this.STORE_NAME, 'readwrite');
-      const store = tx.objectStore(this.STORE_NAME);
+    const db = await this.openDB();
+    const tx = db.transaction(this.STORE_NAME, 'readwrite');
+    const store = tx.objectStore(this.STORE_NAME);
 
-      const existing = await store.get(track.id);
+    return new Promise((resolve, reject) => {
+      const request = store.get(track.id);
 
-      store.put({
-        ...existing,
-        ...track
-      });
+      request.onsuccess = () => {
+        const existing = request.result as StoredTrack;
 
-      return new Promise((resolve, reject) => {
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject('Erreur lors de la mise à jour du track');
-      });
+        store.put({
+          ...existing,
+          ...track
+        });
 
-    } catch (error) {
-      throw error;
-    }
+        resolve();
+      };
+
+      request.onerror = () =>
+        reject('Erreur lors de la mise à jour du track');
+    });
   }
 }
-
