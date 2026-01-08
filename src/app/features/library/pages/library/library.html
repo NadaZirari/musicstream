@@ -50,3 +50,37 @@
   </p>
 
 </div>
+<h3>➕ Ajouter un track</h3>
+
+<form [formGroup]="trackForm" (ngSubmit)="submit()">
+
+  <input formControlName="title" placeholder="Titre" />
+  <small *ngIf="trackForm.controls.title.errors">
+    Titre requis (max 50 caractères)
+  </small>
+
+  <input formControlName="artist" placeholder="Artiste" />
+  <small *ngIf="trackForm.controls.artist.errors">
+    Artiste requis
+  </small>
+
+  <textarea formControlName="description" placeholder="Description (optionnelle)"></textarea>
+
+  <select formControlName="category">
+    <option value="pop">Pop</option>
+    <option value="rock">Rock</option>
+    <option value="rap">Rap</option>
+    <option value="jazz">Jazz</option>
+    <option value="classical">Classique</option>
+    <option value="other">Autre</option>
+  </select>
+
+  <input type="file" (change)="onFileSelected($event)" />
+
+  <p class="error" *ngIf="fileError">{{ fileError }}</p>
+
+  <button type="submit" [disabled]="trackForm.invalid || fileError">
+    Ajouter
+  </button>
+
+</form>
