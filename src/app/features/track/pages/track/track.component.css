@@ -1,0 +1,28 @@
+.track-page {
+  max-width: 700px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.player {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+}
+
+.controls button {
+  margin: 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.progress,
+.volume {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+input[type="range"] {
+  flex: 1;
+}
