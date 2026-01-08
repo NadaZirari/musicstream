@@ -1,48 +1,307 @@
+/* Container principal */
 .library {
-  max-width: 800px;
-  margin: auto;
-  padding: 1rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #FFEAD3; /* fond gris clair moderne */
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
 }
 
+/* Titres */
+.library h2,
+h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #1D546C; /* bleu foncé moderne */
+  font-weight: 700;
+}
+
+/* Inputs et select */
 .search-input,
-.filter-select {
+.filter-select,
+input[formControlName],
+textarea,
+select {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.7rem 1rem;
   margin-bottom: 1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  transition: all 0.2s;
 }
 
+.search-input:focus,
+.filter-select:focus,
+input[formControlName]:focus,
+textarea:focus,
+select:focus {
+  border-color: #6366f1; /* violet moderne */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Liste des tracks */
 ul {
   list-style: none;
   padding: 0;
 }
 
 li {
-  padding: 0.75rem;
-  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 0.6rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
 }
 
+li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Catégorie */
 .category {
-  color: #777;
-  font-size: 0.9rem;
+  color: #64748b; /* gris-bleu doux */
+  font-size: 0.85rem;
+  font-style: italic;
 }
 
+/* Actions */
 .actions {
-  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .actions a {
-  margin-right: 1rem;
   text-decoration: none;
-  color: blue;
+  color: #3b82f6; /* bleu vif */
+  font-weight: 500;
+}
+
+.actions a:hover {
+  text-decoration: underline;
 }
 
 button {
-  background: transparent;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
   border: none;
-  color: red;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
+button[type="submit"] {
+  background: #6366f1; /* violet moderne */
+  color: white;
+}
+
+button[type="submit"]:hover {
+  background: #4f46e5;
+}
+
+button[disabled] {
+  background: #a1a1aa;
+  cursor: not-allowed;
+}
+
+button.delete-btn {
+  background: #ef4444; /* rouge vif */
+  color: white;
+}
+
+button.delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Erreurs */
 .error {
-  color: red;
+  color: #f43f5e; /* rouge moderne */
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Textarea */
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+/* Formulaire centré */
+form {
+  max-width: 600px;      /* largeur fixe pour le formulaire */
+  margin: 2rem auto;     /* centré horizontalement */
+  padding: 2rem;
+  background: #FFF2EF;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Labels */
+form label {
+  font-weight: 500;
+  color: #1D546C;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+/* Inputs & textarea */
+form input[formControlName],
+form select,
+form textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  transition: all 0.3s;
+  background: #fefefe;
+}
+
+form input[formControlName]:focus,
+form select:focus,
+form textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  outline: none;
+}
+
+/* Placeholder */
+form input[formControlName]::placeholder,
+form textarea::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Bouton Ajouter */
+form button[type="submit"] {
+  padding: 0.8rem 1.5rem;
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+form button[type="submit"]:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+}
+
+form button[disabled] {
+  background: #a1a1aa;
+  cursor: not-allowed;
+}
+
+/* Messages d'erreur */
+form .error {
+  color: #f43f5e;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: -0.5rem;
+}
+
+/* Textarea */
+form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Input file */
+form input[type="file"] {
+  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #fefefe;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+form input[type="file"]:hover {
+  border-color: #6366f1;
+}
+
+/* Liste des tracks centrée */
+ul {
+  list-style: none;
+  padding: 0;
+  max-width: 700px;
+  margin: 0 auto; /* centré */
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 0.6rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Catégorie */
+.category {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actions a {
+  text-decoration: none;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.actions a:hover {
+  text-decoration: underline;
+}
+
+button.delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+button.delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  form, ul {
+    width: 90%;
+  }
+
+  li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
