@@ -24,31 +24,49 @@ export class TrackService {
   // ==========================
   // 📥 LOAD TRACKS
   // ==========================
+  private _tracks: Track[] = [];
+  
   async loadTracks(): Promise<void> {
     this.stateSubject.next('loading');
     this.errorSubject.next(null);
 
     try {
       const data = await this.storageService.getAllTracks();
+      
+      // Convertir les données brutes en objets Track
+      this._tracks = data.map(item => {
+        // Créer une URL d'objet pour le fichier audio
+        const audioUrl = URL.createObjectURL(item.audioFile);
+        
+        return {
+          id: item.id,
+          title: item.title,
+          artist: item.artist,
+          description: item.description || '',
+          category: item.category,
+          duration: item.duration || 0,
+          createdAt: item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt),
+          audioUrl: audioUrl
+        } as Track;
+      });
 
-      const tracks: Track[] = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        artist: item.artist,
-        description: item.description,
-        category: item.category,
-        duration: item.duration,
-        createdAt: new Date(item.createdAt),
-        audioUrl: URL.createObjectURL(item.audioFile)
-      }));
-
-      this.tracksSubject.next(tracks);
+      // Mettre à jour les observables
+      this.tracksSubject.next([...this._tracks]);
       this.stateSubject.next('success');
 
     } catch (error: any) {
+      console.error('Erreur lors du chargement des pistes:', error);
       this.stateSubject.next('error');
-      this.errorSubject.next(error?.toString() || 'Erreur chargement des tracks');
+      this.errorSubject.next(error?.message || 'Erreur lors du chargement des pistes');
+      this.tracksSubject.next([]);
     }
+  }
+  
+  // ==========================
+  // 🔍 GET TRACK BY ID
+  // ==========================
+  getTrackById(id: string): Track | undefined {
+    return this._tracks.find(track => track.id === id);
   }
 
   // ==========================
@@ -98,10 +116,4 @@ export class TrackService {
     }
   }
 
-  // ==========================
-  // 🔍 GET TRACK BY ID
-  // ==========================
-  getTrackById(id: string): Track | undefined {
-    return this.tracksSubject.getValue().find(track => track.id === id);
-  }
 }
