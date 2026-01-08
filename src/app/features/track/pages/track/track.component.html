@@ -1,0 +1,56 @@
+
+<div *ngIf="track" class="track-page">
+
+  <h2>{{ track.title }}</h2>
+  <p><strong>Artiste :</strong> {{ track.artist }}</p>
+  <p><strong>Catégorie :</strong> {{ track.category }}</p>
+  <p *ngIf="track.description">{{ track.description }}</p>
+
+  <!-- 🎧 Lecteur -->
+  <div class="player">
+
+    <!-- Contrôles -->
+    <div class="controls">
+      <button (click)="audioPlayer.previous()">⏮</button>
+
+      <button *ngIf="(audioPlayer.state$ | async) !== 'playing'"
+              (click)="audioPlayer.play()">▶</button>
+
+      <button *ngIf="(audioPlayer.state$ | async) === 'playing'"
+              (click)="audioPlayer.pause()">⏸</button>
+
+      <button (click)="audioPlayer.next()">⏭</button>
+    </div>
+
+    <!-- Progression -->
+    <div class="progress">
+      <span>{{ formatTime((audioPlayer.currentTime$ | async) || 0) }}</span>
+
+      <input
+        type="range"
+        min="0"
+        [max]="(audioPlayer.duration$ | async) || 0"
+        [value]="(audioPlayer.currentTime$ | async) || 0"
+        (input)="audioPlayer.seek($any($event.target).value)"
+      />
+
+      <span>{{ formatTime((audioPlayer.duration$ | async) || 0) }}</span>
+    </div>
+
+    <!-- Volume -->
+    <div class="volume">
+      🔊
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.1"
+        [value]="(audioPlayer.volume$ | async) || 1"
+        (input)="audioPlayer.setVolume($any($event.target).value)"
+      />
+    </div>
+
+  </div>
+
+  <a routerLink="/library">⬅ Retour à la bibliothèque</a>
+</div>
