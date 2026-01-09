@@ -1,59 +1,117 @@
-# TempAngularApp
+# MusicStream
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.4.
+## 📖 Description
 
-## Development server
+**MusicStream** est une application musicale locale développée avec **Angular 17**.  
+Elle permet aux utilisateurs de gérer et écouter leur musique locale, avec un système CRUD complet pour les tracks et un lecteur audio intégré. L'objectif est de créer une application simple, fonctionnelle et maintenable, offrant une expérience utilisateur fluide.
 
-To start a local development server, run:
+---
 
-```bash
+## 🎯 Objectifs du projet
+
+- Gestion complète des tracks (CRUD) avec métadonnées :
+  - Nom de la chanson
+  - Nom du chanteur
+  - Description optionnelle (max 200 caractères)
+  - Date d'ajout automatique
+  - Durée calculée automatiquement
+  - Catégorie musicale (pop, rock, rap, etc.)
+- Pages principales :
+  - **Bibliothèque** : Liste des tracks avec recherche et filtres
+  - **Track** : Affichage détaillé et lecture du track sélectionné
+- Lecteur audio :
+  - Contrôles : play, pause, next, previous
+  - Contrôle du volume et de la progression
+  - Gestion des états : playing, paused, buffering, stopped
+- Gestion locale des fichiers audio et métadonnées via IndexedDB
+- Validation des formulaires et des fichiers audio (taille max 10MB, formats MP3/WAV/OGG)
+
+---
+
+## ⚙️ Fonctionnalités principales
+
+1. **Bibliothèque musicale**
+  - Affichage des tracks existants
+  - Recherche par titre ou artiste
+  - Filtrage par catégorie
+  - Suppression d’un track
+
+2. **Ajout de track**
+  - Formulaire réactif avec validations
+  - Sélection de fichier audio avec validation de taille et format
+  - Calcul automatique de la durée du track
+  - Réinitialisation du formulaire après ajout
+
+3. **Lecteur audio**
+  - Lecture, pause, track suivant, track précédent
+  - Progression et volume réglables
+  - Gestion réactive de l’état du lecteur
+
+4. **Stockage local**
+  - Persistence des tracks et des fichiers audio via IndexedDB
+  - Gestion des erreurs de lecture/écriture
+  - Interface uniforme pour CRUD
+
+---
+
+## 🛠️ Technologies utilisées
+
+- **Frontend :**
+  - Angular 17+
+  - TypeScript
+  - Reactive Forms
+  - RxJS & AsyncPipe pour gestion réactive
+  - Components, Modules, Services
+  - Routing avec lazy loading
+  - CSS (ou Tailwind/Bootstrap selon préférence)
+- **Stockage :**
+  - IndexedDB pour fichiers audio et métadonnées
+
+---
+
+## 📂 Structure du projet
+
+src/
+├─ app/
+│ ├─ features/
+│ │ └─ library/
+│ │ ├─ pages/
+│ │ │ └─ library/
+│ │ │ ├─ library.component.ts
+│ │ │ ├─ library.component.html
+│ │ │ └─ library.component.css
+│ ├─ core/
+│ │ ├─ services/
+│ │ │ ├─ track.service.ts
+│ │ │ ├─ storage.service.ts
+│ │ │ └─ audio-player.service.ts
+│ │ └─ models/
+│ │ ├─ track.model.ts
+│ │ ├─ player-state.model.ts
+│ │ └─ state.model.ts
+
+
+---
+
+## ⚡ Installation et lancement
+
+1. Cloner le projet depuis GitHub :
+
+
+git clone <https://github.com/NadaZirari/musicstream>
+cd musicstream
+
+
+Installer les dépendances :
+
+npm install
+
+
+Lancer le serveur de développement :
+
 ng serve
-```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Code scaffolding
+Ouvrir l'application dans le navigateur :
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+http://localhost:4200
