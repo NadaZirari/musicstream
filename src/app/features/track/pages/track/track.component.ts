@@ -1,7 +1,7 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule, DatePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Track } from '@app/core/models/track.model';
 import { TrackService } from '@app/core/services';
 import { LoadingState } from '@app/core/models/state.model';
@@ -35,10 +35,30 @@ import { LoadingState } from '@app/core/models/state.model';
 
         <div class="audio-player">
           <h3>Écouter la piste :</h3>
-          <audio controls>
-            <source [src]="track.audioUrl" type="audio/mpeg">
-            Votre navigateur ne supporte pas la lecture audio.
-          </audio>
+          <ng-container *ngIf="track && trackId">
+            <audio #audioPlayer controls>
+              <source [src]="track.audioUrl" type="audio/mpeg">
+              Votre navigateur ne supporte pas la lecture audio.
+            </audio>
+          </ng-container>
+          
+          <div class="navigation-buttons" *ngIf="hasNavigation">
+            <button 
+              class="nav-btn prev-btn" 
+              [disabled]="!hasPreviousTrack" 
+              (click)="goToPreviousTrack()"
+              title="Piste précédente">
+              ← Précédent
+            </button>
+            
+            <button 
+              class="nav-btn next-btn" 
+              [disabled]="!hasNextTrack" 
+              (click)="goToNextTrack()"
+              title="Piste suivante">
+              Suivant →
+            </button>
+          </div>
         </div>
       </ng-container>
     </div>
@@ -99,10 +119,60 @@ import { LoadingState } from '@app/core/models/state.model';
       border-radius: 4px;
       border-left: 4px solid #e74c3c;
     }
+    
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      gap: 1rem;
+    }
+    
+    .nav-btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #3498db;
+      color: white;
+    }
+    
+    .nav-btn:hover:not(:disabled) {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .nav-btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .prev-btn {
+      background: #27ae60;
+    }
+    
+    .prev-btn:hover:not(:disabled) {
+      background: #229954;
+    }
+    
+    .next-btn {
+      background: #e74c3c;
+    }
+    
+    .next-btn:hover:not(:disabled) {
+      background: #c0392b;
+    }
   `]
 })
 export class TrackComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private trackService = inject(TrackService);
   private subscription: Subscription | null = null;
   
@@ -110,6 +180,9 @@ export class TrackComponent implements OnInit, OnDestroy {
   track: Track | null = null;
   state: LoadingState = 'idle';
   error: string | null = null;
+  allTracks: Track[] = [];
+  currentTrackIndex: number = -1;
+  @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
   
   categories = {
     pop: 'Pop',
@@ -121,8 +194,19 @@ export class TrackComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    this.trackId = this.route.snapshot.paramMap.get('id');
-    this.loadTrack();
+    // S'abonner aux changements de paramètres d'URL
+    this.route.paramMap.subscribe(params => {
+      this.trackId = params.get('id');
+      console.log('Track ID changed to:', this.trackId);
+      this.loadTrack();
+    });
+    
+    // S'abonner aux changements de pistes pour mettre à jour la navigation
+    this.trackService.tracks$.subscribe(tracks => {
+      this.allTracks = tracks;
+      this.currentTrackIndex = tracks.findIndex(t => t.id === this.trackId);
+      console.log('Tracks updated, current index:', this.currentTrackIndex);
+    });
   }
 
   private loadTrack() {
@@ -139,11 +223,24 @@ export class TrackComponent implements OnInit, OnDestroy {
       this.subscription.unsubscribe();
     }
     
+    // Arrêter l'audio actuel
+    if (this.audioPlayer) {
+      this.audioPlayer.nativeElement.pause();
+      this.audioPlayer.nativeElement.currentTime = 0;
+    }
+    
     // Vérifier d'abord si les pistes sont déjà chargées
     const existingTrack = this.trackService.getTrackById(this.trackId);
     if (existingTrack) {
       this.track = existingTrack;
+      this.updateNavigationData();
       this.state = 'success';
+      // Forcer le rechargement de l'audio après un court délai
+      setTimeout(() => {
+        if (this.audioPlayer) {
+          this.audioPlayer.nativeElement.load();
+        }
+      }, 100);
       return;
     }
     
@@ -153,7 +250,15 @@ export class TrackComponent implements OnInit, OnDestroy {
         const foundTrack = tracks.find(t => t.id === this.trackId) || this.trackService.getTrackById(this.trackId!);
         if (foundTrack) {
           this.track = foundTrack;
+          this.allTracks = tracks;
+          this.currentTrackIndex = tracks.findIndex(t => t.id === this.trackId);
           this.state = 'success';
+          // Forcer le rechargement de l'audio après un court délai
+          setTimeout(() => {
+            if (this.audioPlayer) {
+              this.audioPlayer.nativeElement.load();
+            }
+          }, 100);
         } else if (this.state !== 'loading') {
           // Si on a déjà essayé de charger mais qu'on n'est pas en train de charger
           this.state = 'error';
@@ -175,6 +280,7 @@ export class TrackComponent implements OnInit, OnDestroy {
           const foundTrack = this.trackService.getTrackById(this.trackId!);
           if (foundTrack) {
             this.track = foundTrack;
+            this.updateNavigationData();
             this.state = 'success';
           } else {
             // Si on n'a toujours pas trouvé la piste, essayer de recharger
@@ -209,6 +315,58 @@ export class TrackComponent implements OnInit, OnDestroy {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+  
+  private updateNavigationData(): void {
+    this.trackService.tracks$.subscribe(tracks => {
+      this.allTracks = tracks;
+      this.currentTrackIndex = tracks.findIndex(t => t.id === this.trackId);
+      console.log('Navigation data updated:', { 
+        tracksCount: tracks.length, 
+        currentIndex: this.currentTrackIndex,
+        trackId: this.trackId,
+        hasPrevious: this.hasPreviousTrack,
+        hasNext: this.hasNextTrack
+      });
+    });
+  }
+  
+  get hasNavigation(): boolean {
+    return this.allTracks.length > 1;
+  }
+  
+  get hasPreviousTrack(): boolean {
+    return this.currentTrackIndex > 0;
+  }
+  
+  get hasNextTrack(): boolean {
+    return this.currentTrackIndex >= 0 && this.currentTrackIndex < this.allTracks.length - 1;
+  }
+  
+  goToPreviousTrack(): void {
+    console.log('Previous track clicked:', { 
+      currentIndex: this.currentTrackIndex, 
+      hasPrevious: this.hasPreviousTrack,
+      allTracksLength: this.allTracks.length 
+    });
+    if (this.hasPreviousTrack) {
+      const previousTrack = this.allTracks[this.currentTrackIndex - 1];
+      console.log('Navigating to previous track:', previousTrack.id);
+      this.router.navigate(['/track', previousTrack.id]);
+    }
+  }
+  
+  goToNextTrack(): void {
+    console.log('Next track clicked:', { 
+      currentIndex: this.currentTrackIndex, 
+      hasNext: this.hasNextTrack,
+      allTracksLength: this.allTracks.length 
+    });
+    if (this.hasNextTrack) {
+      const nextTrack = this.allTracks[this.currentTrackIndex + 1];
+      console.log('Navigating to next track:', nextTrack.id);
+      this.router.navigate(['/track', nextTrack.id]);
+    }
   }
   
   ngOnDestroy() {
