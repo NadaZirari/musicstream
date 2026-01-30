@@ -22,17 +22,15 @@
   </select>
 
   <!-- ⏳ Chargement -->
-  <p *ngIf="(trackService.state$ | async) === 'loading'">
-    Chargement des tracks...
-  </p>
-
+  <!-- Simplified loading check -->
+  
   <!-- ❌ Erreur -->
-  <p class="error" *ngIf="(trackService.state$ | async) === 'error'">
-    {{ trackService.error$ | async }}
+  <p class="error" *ngIf="error$ | async as error">
+    {{ error }}
   </p>
 
   <!-- 📃 Liste -->
-  <ng-container *ngIf="trackService.tracks$ | async as tracks">
+  <ng-container *ngIf="tracks$ | async as tracks">
     <ul *ngIf="tracks.length > 0">
       <li *ngFor="let track of filterTracks(tracks)">
         <strong>{{ track.title }}</strong> – {{ track.artist }}

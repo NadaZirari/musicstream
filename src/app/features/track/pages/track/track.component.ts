@@ -2,9 +2,10 @@ import { Component, inject, OnDestroy, OnInit, ViewChild, ElementRef } from '@an
 import { Subscription } from 'rxjs';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Track } from '@app/core/models/track.model';
-import { TrackService } from '@app/core/services';
-import { LoadingState } from '@app/core/models/state.model';
+import { loadTracks } from '@app/store/actions/track.actions';
+import { TrackState } from '@app/store/reducers/track.reducer';
 
 @Component({
   selector: 'app-track',
@@ -173,12 +174,12 @@ import { LoadingState } from '@app/core/models/state.model';
 export class TrackComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private trackService = inject(TrackService);
-  private subscription: Subscription | null = null;
+  private store = inject(Store<{ track: TrackState }>);
+  private subscription: Subscription = new Subscription();
   
   trackId: string | null = null;
   track: Track | null = null;
-  state: LoadingState = 'idle';
+  state: 'idle' | 'loading' | 'success' | 'error' = 'idle';
   error: string | null = null;
   allTracks: Track[] = [];
   currentTrackIndex: number = -1;
@@ -194,115 +195,48 @@ export class TrackComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    // S'abonner aux changements de paramètres d'URL
-    this.route.paramMap.subscribe(params => {
-      this.trackId = params.get('id');
-      console.log('Track ID changed to:', this.trackId);
-      this.loadTrack();
-    });
-    
-    // S'abonner aux changements de pistes pour mettre à jour la navigation
-    this.trackService.tracks$.subscribe(tracks => {
-      this.allTracks = tracks;
-      this.currentTrackIndex = tracks.findIndex(t => t.id === this.trackId);
-      console.log('Tracks updated, current index:', this.currentTrackIndex);
-    });
+    this.state = 'loading'; // Assume loading initially
+    this.store.dispatch(loadTracks());
+
+    // Subscribe to tracks from store
+    this.subscription.add(
+      this.store.select(state => state.track).subscribe(trackState => {
+        this.allTracks = trackState.tracks;
+        if (trackState.error) {
+          this.state = 'error';
+          this.error = trackState.error;
+        } else if (this.allTracks.length > 0) {
+          this.state = 'success';
+          this.updateCurrentTrack();
+        }
+      })
+    );
+
+    // Subscribe to route params
+    this.subscription.add(
+      this.route.paramMap.subscribe(params => {
+        this.trackId = params.get('id');
+        this.updateCurrentTrack();
+      })
+    );
   }
 
-  private loadTrack() {
-    if (!this.trackId) {
-      this.state = 'error';
-      this.error = 'Aucun identifiant de piste fourni';
-      return;
-    }
+  private updateCurrentTrack() {
+    if (this.trackId && this.allTracks.length > 0) {
+      const track = this.allTracks.find(t => t.id === this.trackId);
 
-    this.state = 'loading';
-    
-    // Se désabonner de l'ancien abonnement s'il existe
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-    
-    // Arrêter l'audio actuel
-    if (this.audioPlayer) {
-      this.audioPlayer.nativeElement.pause();
-      this.audioPlayer.nativeElement.currentTime = 0;
-    }
-    
-    // Vérifier d'abord si les pistes sont déjà chargées
-    const existingTrack = this.trackService.getTrackById(this.trackId);
-    if (existingTrack) {
-      this.track = existingTrack;
-      this.updateNavigationData();
-      this.state = 'success';
-      // Forcer le rechargement de l'audio après un court délai
-      setTimeout(() => {
-        if (this.audioPlayer) {
-          this.audioPlayer.nativeElement.load();
-        }
-      }, 100);
-      return;
-    }
-    
-    // Si la piste n'est pas trouvée, essayer de recharger les pistes
-    this.subscription = this.trackService.tracks$.subscribe({
-      next: (tracks) => {
-        const foundTrack = tracks.find(t => t.id === this.trackId) || this.trackService.getTrackById(this.trackId!);
-        if (foundTrack) {
-          this.track = foundTrack;
-          this.allTracks = tracks;
-          this.currentTrackIndex = tracks.findIndex(t => t.id === this.trackId);
-          this.state = 'success';
-          // Forcer le rechargement de l'audio après un court délai
-          setTimeout(() => {
+      if (track) {
+        this.track = track;
+        this.currentTrackIndex = this.allTracks.indexOf(track);
+        // Audio reload logic
+        setTimeout(() => {
             if (this.audioPlayer) {
               this.audioPlayer.nativeElement.load();
             }
-          }, 100);
-        } else if (this.state !== 'loading') {
-          // Si on a déjà essayé de charger mais qu'on n'est pas en train de charger
-          this.state = 'error';
-          this.error = 'Piste non trouvée. Essayez de recharger la page.';
-        }
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des pistes:', err);
-        this.state = 'error';
-        this.error = 'Erreur lors du chargement de la piste: ' + (err.message || 'Erreur inconnue');
+        }, 100);
+      } else {
+        // Track not found in list yet
       }
-    });
-    
-    // Vérifier l'état actuel et charger les pistes si nécessaire
-    const stateSubscription = this.trackService.state$.subscribe({
-      next: (state) => {
-        if (state === 'success') {
-          // Si l'état est déjà en succès, vérifier à nouveau la piste
-          const foundTrack = this.trackService.getTrackById(this.trackId!);
-          if (foundTrack) {
-            this.track = foundTrack;
-            this.updateNavigationData();
-            this.state = 'success';
-          } else {
-            // Si on n'a toujours pas trouvé la piste, essayer de recharger
-            this.trackService.loadTracks();
-          }
-        } else if (state === 'idle' || state === 'error') {
-          // Si l'état est inactif ou en erreur, recharger
-          this.trackService.loadTracks();
-        }
-      },
-      error: (err) => {
-        console.error('Erreur lors de la vérification de l\'état:', err);
-        this.state = 'error';
-        this.error = 'Erreur lors du chargement des données';
-      }
-    });
-    
-    // Ajouter à la liste des abonnements à nettoyer
-    if (this.subscription) {
-      this.subscription.add(stateSubscription);
-    } else {
-      this.subscription = stateSubscription;
     }
   }
 
@@ -315,20 +249,6 @@ export class TrackComponent implements OnInit, OnDestroy {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
-  
-  private updateNavigationData(): void {
-    this.trackService.tracks$.subscribe(tracks => {
-      this.allTracks = tracks;
-      this.currentTrackIndex = tracks.findIndex(t => t.id === this.trackId);
-      console.log('Navigation data updated:', { 
-        tracksCount: tracks.length, 
-        currentIndex: this.currentTrackIndex,
-        trackId: this.trackId,
-        hasPrevious: this.hasPreviousTrack,
-        hasNext: this.hasNextTrack
-      });
-    });
   }
   
   get hasNavigation(): boolean {
@@ -344,35 +264,20 @@ export class TrackComponent implements OnInit, OnDestroy {
   }
   
   goToPreviousTrack(): void {
-    console.log('Previous track clicked:', { 
-      currentIndex: this.currentTrackIndex, 
-      hasPrevious: this.hasPreviousTrack,
-      allTracksLength: this.allTracks.length 
-    });
     if (this.hasPreviousTrack) {
       const previousTrack = this.allTracks[this.currentTrackIndex - 1];
-      console.log('Navigating to previous track:', previousTrack.id);
       this.router.navigate(['/track', previousTrack.id]);
     }
   }
   
   goToNextTrack(): void {
-    console.log('Next track clicked:', { 
-      currentIndex: this.currentTrackIndex, 
-      hasNext: this.hasNextTrack,
-      allTracksLength: this.allTracks.length 
-    });
     if (this.hasNextTrack) {
       const nextTrack = this.allTracks[this.currentTrackIndex + 1];
-      console.log('Navigating to next track:', nextTrack.id);
       this.router.navigate(['/track', nextTrack.id]);
     }
   }
   
   ngOnDestroy() {
-    // Nettoyer les abonnements lors de la destruction du composant
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscription.unsubscribe();
   }
 }
