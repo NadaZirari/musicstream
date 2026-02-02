@@ -12,7 +12,7 @@ export interface Track {
   artist: string;
   description?: string;
   category: MusicCategory;
-  duration: number;           // en secondes (calculée auto)
-  createdAt: Date;
-  audioUrl: string;           // URL locale
+  duration: string;           // en secondes
+  addedDate: string;          // ISO string
+  audioUrl: string;           // URL base/api/tracks/{id}/stream
 }

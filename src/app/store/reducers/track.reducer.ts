@@ -14,6 +14,12 @@ export const initialState: TrackState = {
 
 export const trackReducer = createReducer(
   initialState,
-  on(TrackActions.loadTracksSuccess, (state, { tracks }) => ({ ...state, tracks })),
-  on(TrackActions.loadTracksFailure, (state, { error }) => ({ ...state, error }))
+  on(TrackActions.loadTracksSuccess, (state, { tracks }) => ({ ...state, tracks, error: null })),
+  on(
+    TrackActions.loadTracksFailure,
+    TrackActions.addTrackFailure,
+    TrackActions.updateTrackFailure,
+    TrackActions.deleteTrackFailure,
+    (state, { error }) => ({ ...state, error })
+  )
 );

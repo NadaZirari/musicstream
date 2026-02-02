@@ -6,11 +6,13 @@ import { Store } from '@ngrx/store';
 import { Track } from '@app/core/models/track.model';
 import { loadTracks } from '@app/store/actions/track.actions';
 import { TrackState } from '@app/store/reducers/track.reducer';
+import * as TrackSelectors from '@app/store/selectors/track.selectors';
 
 @Component({
   selector: 'app-track',
   standalone: true,
   imports: [CommonModule, DatePipe],
+// ... same styles and template ...
   template: `
     <div class="track">
       <ng-container *ngIf="state === 'loading'">
@@ -31,7 +33,7 @@ import { TrackState } from '@app/store/reducers/track.reducer';
           <p><strong>Description :</strong> {{ track.description || 'Aucune description disponible' }}</p>
           <p><strong>Catégorie :</strong> {{ getCategoryName(track.category) }}</p>
           <p><strong>Durée :</strong> {{ formatDuration(track.duration) }}</p>
-          <p><strong>Ajoutée le :</strong> {{ track.createdAt | date:'medium' }}</p>
+          <p><strong>Ajoutée le :</strong> {{ track.addedDate | date:'medium' }}</p>
         </div>
 
         <div class="audio-player">
@@ -200,7 +202,7 @@ export class TrackComponent implements OnInit, OnDestroy {
 
     // Subscribe to tracks from store
     this.subscription.add(
-      this.store.select(state => state.track).subscribe(trackState => {
+      this.store.select(TrackSelectors.selectTrackState).subscribe(trackState => {
         this.allTracks = trackState.tracks;
         if (trackState.error) {
           this.state = 'error';
@@ -244,8 +246,9 @@ export class TrackComponent implements OnInit, OnDestroy {
     return this.categories[category as keyof typeof this.categories] || category;
   }
 
-  formatDuration(seconds: number): string {
-    if (!seconds) return 'Inconnue';
+  formatDuration(duration: string | number): string {
+    const seconds = typeof duration === 'string' ? parseInt(duration, 10) : duration;
+    if (!seconds || isNaN(seconds)) return 'Inconnue';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;

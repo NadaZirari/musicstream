@@ -38,6 +38,7 @@
 
         <div class="actions">
           <a [routerLink]="['/track', track.id]">▶ Lire</a>
+          <button (click)="editTrack(track)">📝 Modifier</button>
           <button (click)="deleteTrack(track.id)">🗑 Supprimer</button>
         </div>
       </li>
@@ -53,7 +54,7 @@
 
 <hr />
 
-<h3>➕ Ajouter un track</h3>
+<h3 id="track-form-anchor">{{ isEditing ? '📝 Modifier le track' : '➕ Ajouter un track' }}</h3>
 
 <form [formGroup]="trackForm" (ngSubmit)="submit()">
 
@@ -81,12 +82,18 @@
     <option value="other">Autre</option>
   </select>
 
-  <input type="file" (change)="onFileSelected($event)" />
+  <div *ngIf="!isEditing">
+    <input type="file" (change)="onFileSelected($event)" />
+    <p class="error" *ngIf="fileError">{{ fileError }}</p>
+  </div>
 
-  <p class="error" *ngIf="fileError">{{ fileError }}</p>
-
-  <button type="submit" [disabled]="trackForm.invalid || fileError">
-    Ajouter
-  </button>
+  <div class="form-actions">
+    <button type="submit" [disabled]="trackForm.invalid || fileError">
+      {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+    </button>
+    <button type="button" *ngIf="isEditing" (click)="cancelEdit()">
+      Annuler
+    </button>
+  </div>
 
 </form>
