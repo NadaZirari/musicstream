@@ -1,12 +1,9 @@
-import { Component, inject, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { Track } from '@app/core/models/track.model';
-import { loadTracks } from '@app/store/actions/track.actions';
-import { TrackState } from '@app/store/reducers/track.reducer';
-import * as TrackSelectors from '@app/store/selectors/track.selectors';
+import { TrackService } from '../../../../core/services/track.service';
+import { Track } from '../../../../core/models/track.model';
 
 @Component({
   selector: 'app-track',
@@ -89,7 +86,7 @@ import * as TrackSelectors from '@app/store/selectors/track.selectors';
     }
     
     .artist {
-      color: #7f8c8d;
+      color: #000000;
       font-size: 1.2rem;
       margin: 0;
     }
@@ -176,7 +173,8 @@ import * as TrackSelectors from '@app/store/selectors/track.selectors';
 export class TrackComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private store = inject(Store<{ track: TrackState }>);
+  private trackService = inject(TrackService);
+  private cdr = inject(ChangeDetectorRef);
   private subscription: Subscription = new Subscription();
   
   trackId: string | null = null;
@@ -197,49 +195,55 @@ export class TrackComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    this.state = 'loading'; // Assume loading initially
-    this.store.dispatch(loadTracks());
-
-    // Subscribe to tracks from store
-    this.subscription.add(
-      this.store.select(TrackSelectors.selectTrackState).subscribe(trackState => {
-        this.allTracks = trackState.tracks;
-        if (trackState.error) {
-          this.state = 'error';
-          this.error = trackState.error;
-        } else if (this.allTracks.length > 0) {
-          this.state = 'success';
-          this.updateCurrentTrack();
-        }
-      })
-    );
-
+    this.state = 'loading';
+    
     // Subscribe to route params
     this.subscription.add(
       this.route.paramMap.subscribe(params => {
         this.trackId = params.get('id');
-        this.updateCurrentTrack();
+        if (this.trackId) {
+          this.loadTrackDetails();
+        }
       })
     );
   }
 
-  private updateCurrentTrack() {
-    if (this.trackId && this.allTracks.length > 0) {
-      const track = this.allTracks.find(t => t.id === this.trackId);
-
-      if (track) {
-        this.track = track;
-        this.currentTrackIndex = this.allTracks.indexOf(track);
-        // Audio reload logic
-        setTimeout(() => {
+  loadTrackDetails() {
+    console.log('Chargement des détails pour le track ID:', this.trackId);
+    
+    // First load all tracks to get the current track and navigation
+    this.trackService.getAll().subscribe({
+      next: (tracks) => {
+        console.log('Tracks reçus:', tracks);
+        this.allTracks = tracks;
+        const track = this.allTracks.find(t => t.id === this.trackId);
+        
+        console.log('Track trouvé:', track);
+        
+        if (track) {
+          this.track = track;
+          this.currentTrackIndex = this.allTracks.indexOf(track);
+          this.state = 'success';
+          console.log('État mis à jour à success');
+          this.cdr.detectChanges(); // Forcer la détection de changement
+          // Audio reload logic
+          setTimeout(() => {
             if (this.audioPlayer) {
               this.audioPlayer.nativeElement.load();
             }
-        }, 100);
-      } else {
-        // Track not found in list yet
+          }, 100);
+        } else {
+          console.log('Track non trouvé dans la liste');
+          this.state = 'error';
+          this.error = 'Track non trouvé';
+        }
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des tracks:', err);
+        this.state = 'error';
+        this.error = 'Erreur lors du chargement des tracks: ' + err.message;
       }
-    }
+    });
   }
 
   getCategoryName(category: string): string {

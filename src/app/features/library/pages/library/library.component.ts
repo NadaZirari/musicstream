@@ -3,12 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-import { TrackService } from '@app/core/services';
-import { Track, MusicCategory } from '@app/core/models/track.model';
-import { Store } from '@ngrx/store';
-import { loadTracks, addTrack, updateTrack, deleteTrack } from '@app/store/actions/track.actions';
-import { TrackState } from '@app/store/reducers/track.reducer';
-import * as TrackSelectors from '@app/store/selectors/track.selectors';
+import { TrackService } from '../../../../core/services/track.service';
+import { Track, MusicCategory } from '../../../../core/models/track.model';
 
 @Component({
   selector: 'app-library',
@@ -34,18 +30,15 @@ export class LibraryComponent implements OnInit {
   isEditing = false;
   editingTrackId: string | null = null;
 
-  // Observables pour la vue
-  tracks$;
-  error$;
+  // Données locales
+  tracks: Track[] = [];
+  error: string | null = null;
+  loading = false;
 
   constructor(
     private trackService: TrackService,
-    private fb: FormBuilder,
-    private store: Store<{ track: TrackState }>
+    private fb: FormBuilder
   ) {
-    this.tracks$ = this.store.select(TrackSelectors.selectAllTracks);
-    this.error$ = this.store.select(TrackSelectors.selectTrackError);
-
     this.trackForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(50)]],
       artist: ['', Validators.required],
@@ -56,7 +49,22 @@ export class LibraryComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.store.dispatch(loadTracks());
+    this.loadTracks();
+  }
+
+  loadTracks(): void {
+    this.loading = true;
+    this.trackService.getAll().subscribe({
+      next: (tracks) => {
+        this.tracks = tracks;
+        this.error = null;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Erreur lors du chargement des tracks: ' + err.message;
+        this.loading = false;
+      }
+    });
   }
 
   // 🎧 Sélection fichier audio
@@ -113,16 +121,28 @@ export class LibraryComponent implements OnInit {
     if (this.trackForm.invalid || this.fileError) return;
 
     if (this.isEditing && this.editingTrackId) {
-      // Logic for Update
-      const trackUpdate: Track = {
-        ...this.trackForm.value,
-        id: this.editingTrackId,
-        addedDate: new Date().toISOString(), // Fallback
-        audioUrl: '' 
+      // Logic for Update - envoyer seulement les champs requis par le backend
+      const trackUpdate = {
+        title: this.trackForm.value.title,
+        artist: this.trackForm.value.artist,
+        category: this.trackForm.value.category,
+        description: this.trackForm.value.description || '',
+        duration: '0' // Valeur par défaut, le backend ne l'utilise pas pour l'update
       };
 
-      this.store.dispatch(updateTrack({ id: this.editingTrackId, track: trackUpdate }));
-      this.cancelEdit();
+      console.log('Envoi de la mise à jour:', trackUpdate);
+
+      this.trackService.update(this.editingTrackId, trackUpdate).subscribe({
+        next: (updatedTrack) => {
+          console.log('Track mis à jour avec succès:', updatedTrack);
+          this.cancelEdit();
+          this.loadTracks(); // Recharger la liste
+        },
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour:', err);
+          this.error = 'Erreur lors de la mise à jour: ' + err.message;
+        }
+      });
 
     } else {
       // Logic for Create
@@ -140,8 +160,15 @@ export class LibraryComponent implements OnInit {
           audioUrl: ''
         };
 
-        this.store.dispatch(addTrack({ track: trackData, file }));
-        this.trackForm.reset({ category: 'pop' });
+        this.trackService.add(trackData, file).subscribe({
+          next: () => {
+            this.trackForm.reset({ category: 'pop' });
+            this.loadTracks(); // Recharger la liste
+          },
+          error: (err) => {
+            this.error = 'Erreur lors de l\'ajout: ' + err.message;
+          }
+        });
       };
     }
   }
@@ -164,7 +191,14 @@ export class LibraryComponent implements OnInit {
   // 🗑 Supprimer
   deleteTrack(id: string): void {
     if (confirm('Voulez-vous vraiment supprimer ce track ?')) {
-      this.store.dispatch(deleteTrack({ id }));
+      this.trackService.delete(id).subscribe({
+        next: () => {
+          this.loadTracks(); // Recharger la liste
+        },
+        error: (err) => {
+          this.error = 'Erreur lors de la suppression: ' + err.message;
+        }
+      });
     }
   }
 }

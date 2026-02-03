@@ -37,13 +37,13 @@ export class TrackService {
     return this.http.delete<void>(`${this.api}/${id}`);
   }
 
-  update(id: string, track: Track): Observable<Track> {
+  update(id: string, track: Partial<Track>): Observable<Track> {
     const body = {
       title: track.title,
       artist: track.artist,
       category: track.category,
       description: track.description || '',
-      duration: track.duration.toString()
+      duration: track.duration?.toString() || '0'
     };
     return this.http.put<Track>(`${this.api}/${id}`, body);
   }

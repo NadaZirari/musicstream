@@ -22,15 +22,15 @@
   </select>
 
   <!-- ⏳ Chargement -->
-  <!-- Simplified loading check -->
-  
+  <p *ngIf="loading">Chargement en cours...</p>
+
   <!-- ❌ Erreur -->
-  <p class="error" *ngIf="error$ | async as error">
+  <p class="error" *ngIf="error">
     {{ error }}
   </p>
 
   <!-- 📃 Liste -->
-  <ng-container *ngIf="tracks$ | async as tracks">
+  <div *ngIf="!loading">
     <ul *ngIf="tracks.length > 0">
       <li *ngFor="let track of filterTracks(tracks)">
         <strong>{{ track.title }}</strong> – {{ track.artist }}
@@ -48,7 +48,7 @@
     <p *ngIf="tracks.length === 0">
       Aucun track dans la bibliothèque.
     </p>
-  </ng-container>
+  </div>
 
 </div>
 

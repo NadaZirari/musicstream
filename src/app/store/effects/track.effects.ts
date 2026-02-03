@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 
 @Injectable()
 export class TrackEffects {
-  loadTracks$ = createEffect(() =>
+  loadTracks$ = createEffect(() => 
     this.actions$.pipe(
       ofType(TrackActions.loadTracks),
       mergeMap(() => this.trackService.getAll()
@@ -19,7 +19,7 @@ export class TrackEffects {
     )
   );
 
-  addTrack$ = createEffect(() =>
+  addTrack$ = createEffect(() => 
     this.actions$.pipe(
       ofType(TrackActions.addTrack),
       mergeMap(({ track, file }) => this.trackService.add(track, file)
@@ -31,7 +31,7 @@ export class TrackEffects {
     )
   );
 
-  updateTrack$ = createEffect(() =>
+  updateTrack$ = createEffect(() => 
     this.actions$.pipe(
       ofType(TrackActions.updateTrack),
       mergeMap(({ id, track }) => this.trackService.update(id, track)
@@ -43,7 +43,7 @@ export class TrackEffects {
     )
   );
 
-  deleteTrack$ = createEffect(() =>
+  deleteTrack$ = createEffect(() => 
     this.actions$.pipe(
       ofType(TrackActions.deleteTrack),
       mergeMap(({ id }) => this.trackService.delete(id)
@@ -56,7 +56,7 @@ export class TrackEffects {
   );
 
   // Trigger reload after success
-  refreshAfterSuccess$ = createEffect(() =>
+  refreshAfterSuccess$ = createEffect(() => 
     this.actions$.pipe(
       ofType(
         TrackActions.addTrackSuccess,

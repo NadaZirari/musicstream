@@ -66,6 +66,17 @@ li:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* Titre et artiste en noir */
+li strong {
+  color: #000000;
+  font-weight: 600;
+}
+
+/* Texte normal en noir */
+li {
+  color: #000000;
+}
+
 /* Catégorie */
 .category {
   color: #64748b; /* gris-bleu doux */
